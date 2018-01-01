@@ -57,7 +57,7 @@
 --
 -- The interface is the same as of other OpenUnion*.hs
 module Data.OpenUnion (Union, inj, prj, decomp,
-                   Member, SetMember, weaken
+                   Member, SetMember, weaken, extract
                   ) where
 
 import Unsafe.Coerce(unsafeCoerce)
@@ -139,6 +139,11 @@ decomp (Union n v) = Left  $ Union (n-1) v
 decomp0 :: Union '[t] v -> Either (Union '[] v) (t v)
 decomp0 (Union _ v) = Right $ unsafeCoerce v
 -- No other case is possible
+
+-- copied (and edited) from
+-- https://gitlab.com/queertypes/freer/blob/develop/src/Data/Open/Union/Internal.hs
+extract :: Union '[t] v -> t v
+extract (Union 0 x)  = unsafeCoerce x
 
 weaken :: Union r w -> Union (any ': r) w
 weaken (Union n v) = Union (n+1) v
