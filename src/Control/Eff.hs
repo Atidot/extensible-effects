@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 {-# LANGUAGE CPP #-}
 
@@ -226,3 +227,18 @@ interpose ret h m = loop m
      Just x -> h x k
      _      -> E u (singleK k)
     where k = qComp q loop
+
+
+runNat :: forall m r e w. (Member m r)
+       => (forall a. e a -> m a)
+       -> Eff (e ': r) w
+       -> Eff r w
+runNat f = handle_relay pure (\v -> (send (f v) >>=))
+
+
+runM :: Monad m
+     => Eff '[m] w
+     -> m w
+runM (Val x) = return x
+runM (E u q) = case extract u of
+  mb -> mb >>= runM . qApp q
